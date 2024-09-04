@@ -5,6 +5,7 @@ library(DT)
 library(ggplot2)
 library(RSelenium)
 library(stringr)
+library(ggrepel)
 
 ### change to your player id & player_name###
 player_id <- "84349021"
@@ -131,7 +132,7 @@ victory_by_bins <- total %>% group_by(bin) %>%
 ggplot(victory_by_bins, aes(x = bin)) +
   geom_point(aes(y = victory_percentage)) +
   geom_line(aes(y = victory_percentage)) +
-  geom_text(aes(y = victory_percentage, label = scales::percent(victory_percentage)),
+  geom_text_repel(aes(y = victory_percentage, label = scales::percent(victory_percentage)),
             vjust = -2,
             size = 3.5) +
   scale_y_continuous(
@@ -151,9 +152,10 @@ ggplot(victory_by_bins, aes(x = bin)) +
 ggplot(victory_by_bins, aes(x = bin)) +
   geom_point(aes(y = avg_games_per_day)) +
   geom_line(aes(y = avg_games_per_day)) +
-  geom_text(aes(y = avg_games_per_day, label = paste0(avg_games_per_day, ' daily \n', days_to_play_thousand_games, ' Days')),
-            vjust = -1,
+  geom_text_repel(aes(y = avg_games_per_day, label = paste0(avg_games_per_day, ' daily \n', days_to_play_thousand_games, ' Days')),
+            vjust = -1.5,
             size = 3,
+            hjust = 0.6,
             color = 'blue') +
   scale_y_continuous(
     expand = c(0, 0),
@@ -165,7 +167,8 @@ ggplot(victory_by_bins, aes(x = bin)) +
     breaks =victory_by_bins$bin,
     name = "1000 Games per bin") +
   theme_classic() +
-  labs(title = "Average number of games finished per day per 1000 games")
+  labs(title = "Average Daily Games per 1000-Game Bin",
+       subtitle = 'Including the Number of Days Taken to Complete Each 1000-Game')
 
 number_of_played_games <- total %>% group_by(game) %>%
                           summarise(total_victory = sum(victory),
