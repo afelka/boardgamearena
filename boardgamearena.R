@@ -54,9 +54,9 @@ user_password$sendKeysToElement(list(rstudioapi::askForPassword()))
 sign_in_button <- remDr$findElement("css", "#submit_login_button") 
 sign_in_button$clickElement()
 
-### depending on how many games you have played change 1300 (I had played 13000 games when I 
+### depending on how many games you have played change 1320 (I had played 13000+ games when I 
 ### ran the code, 10 games per page)
-for (i in 1:1300) {
+for (i in 1:1320) {
 
 ### click see more button 
 see_more_tables <- remDr$findElement("css", "#see_more_tables")  
@@ -114,15 +114,20 @@ total <-   total %>%
            arrange(game_count) %>%
            filter(game_count <= 13000) %>%
            mutate(dates = substr(dates,1,10)) %>%
-           mutate(bin = ntile(game_count, 10)) %>% 
+           mutate(bin = ntile(game_count, 13)) %>% 
            mutate(victory = if_else(rank == "1st", 1,0))
 
 ### create summary tables & plots 
 victory_by_bins <- total %>% group_by(bin) %>% 
                    summarise(total_victory = sum(victory),
-                             game_in_bin = n()) %>% ungroup() %>%
-                   mutate(victory_percentage = total_victory / game_in_bin)
-
+                             game_in_bin = n(),
+                             min_date = min(dates),
+                             max_date = max(dates)) %>% ungroup() %>%
+                   mutate(victory_percentage = total_victory / game_in_bin,
+                          days_to_play_thousand_games = as.numeric(as.Date(max_date) - as.Date(min_date)) + 1) %>%
+                   mutate(avg_games_per_day = round(1000/days_to_play_thousand_games,2))
+                  
+# Plot for victory percentage per 1000 games
 ggplot(victory_by_bins, aes(x = bin)) +
   geom_point(aes(y = victory_percentage)) +
   geom_line(aes(y = victory_percentage)) +
@@ -141,6 +146,26 @@ ggplot(victory_by_bins, aes(x = bin)) +
     name = "1000 Games per bin") +
   theme_classic() +
   labs(title = "Victory Percentage by 1000 Games")
+
+# Avg number of games per day per 1000 games
+ggplot(victory_by_bins, aes(x = bin)) +
+  geom_point(aes(y = avg_games_per_day)) +
+  geom_line(aes(y = avg_games_per_day)) +
+  geom_text(aes(y = avg_games_per_day, label = paste0(avg_games_per_day, ' daily \n', days_to_play_thousand_games, ' Days')),
+            vjust = -1,
+            size = 3,
+            color = 'blue') +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, 15) ,
+    name = "Avg Games Finished Per Day"
+  ) + 
+  scale_x_continuous(
+    labels = as.character(victory_by_bins$bin),
+    breaks =victory_by_bins$bin,
+    name = "1000 Games per bin") +
+  theme_classic() +
+  labs(title = "Average number of games finished per day per 1000 games")
 
 number_of_played_games <- total %>% group_by(game) %>%
                           summarise(total_victory = sum(victory),
