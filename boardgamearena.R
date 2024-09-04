@@ -14,6 +14,7 @@ player_name <- "afelka"
 url <- paste0("https://boardgamearena.com/gamestats?player=",player_id)
 
 ### Setup Selenium with the newest chrome version ### 
+### follow this answer about how to download latest chromedriver https://stackoverflow.com/a/78405621/10710995
 rD <- RSelenium::rsDriver(browser = "chrome",
                           chromever =
                             system2(command = "wmic",
@@ -53,14 +54,14 @@ user_password$sendKeysToElement(list(rstudioapi::askForPassword()))
 sign_in_button <- remDr$findElement("css", "#submit_login_button") 
 sign_in_button$clickElement()
 
-### depending on how many games you have played change 1010 (I had played 10100 games when I 
+### depending on how many games you have played change 1300 (I had played 13000 games when I 
 ### ran the code, 10 games per page)
-for (i in 1:1010) {
+for (i in 1:1300) {
 
 ### click see more button 
 see_more_tables <- remDr$findElement("css", "#see_more_tables")  
 see_more_tables$clickElement()
-Sys.sleep(1.5)
+Sys.sleep(0.5)
 
 }
 
@@ -107,11 +108,11 @@ total <- cbind(games, dates, rank_player_combined)
 ### add game count
 total$game_count <- nrow(total):1
 
-### limit with 10000, change if you want to analyze more data. add victory column and add 
+### limit with 13000, change if you want to analyze more data. add victory column and add 
 ### 10 bins, again change if you want to have more bins
 total <-   total %>% 
            arrange(game_count) %>%
-           filter(game_count <= 10000) %>%
+           filter(game_count <= 13000) %>%
            mutate(dates = substr(dates,1,10)) %>%
            mutate(bin = ntile(game_count, 10)) %>% 
            mutate(victory = if_else(rank == "1st", 1,0))
